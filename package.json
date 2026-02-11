@@ -1,6 +1,7 @@
 {
   "name": "nexus-mirror",
   "version": "1.0.0",
+  "productName": "Nexus Mirror",
   "description": "An Electron application with React and TypeScript",
   "main": "./out/main/index.js",
   "author": "example.com",
