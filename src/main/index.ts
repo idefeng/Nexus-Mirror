@@ -1,5 +1,5 @@
 import { app, shell, BrowserWindow, ipcMain, Notification, Tray, Menu, nativeImage, dialog } from 'electron'
-import { join } from 'path'
+import path, { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import { aria2Manager } from './aria2-manager'
 import { Aria2RPC } from './aria2-rpc'
@@ -145,13 +145,46 @@ app.whenReady().then(() => {
   })
 
   ipcMain.handle('aria2:retry', async (_, gid: string) => {
-    const result = await Aria2RPC.retry(gid)
-    historyManager.remove(gid) // Clear the old failed record from persistent storage
-    return result
+    try {
+      // 1. Try to retry via aria2 live task
+      const result = await Aria2RPC.retry(gid)
+      historyManager.remove(gid)
+      return result
+    } catch (error) {
+      console.log(`[Aria2] Live retry failed for ${gid}, checking history...`)
+      
+      // 2. Fallback: Try to retry using data from history-manager
+      const history = historyManager.getHistory()
+      const task = history.find(t => t.gid === gid)
+      
+      if (task) {
+        const uris = task.files && task.files[0] ? task.files[0].uris.map(u => u.uri) : []
+        if (uris.length > 0) {
+          // Re-add as new task
+          const newGid = await Aria2RPC.addUri(uris, { dir: path.dirname(task.files[0].path) })
+          historyManager.remove(gid)
+          return newGid
+        }
+      }
+      throw error
+    }
   })
 
   ipcMain.handle('aria2:remove', async (_, gid: string) => {
-    return await Aria2RPC.remove(gid)
+    try {
+      // 1. Capture a snapshot of the task before it vanishes
+      const task = await Aria2RPC.tellStatus(gid).catch(() => null)
+      if (task) {
+        // Force status to removed and save to history
+        historyManager.update([{ ...task, status: 'removed' }])
+      }
+      
+      // 2. Perform the actual removal from aria2
+      return await Aria2RPC.remove(gid)
+    } catch (e) {
+      // If regular remove fails, try forceRemove
+      return await Aria2RPC.forceRemove(gid).catch(() => null)
+    }
   })
 
   ipcMain.handle('aria2:getStats', async () => {

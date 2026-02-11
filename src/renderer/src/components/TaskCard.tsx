@@ -131,11 +131,16 @@ export function TaskCard({ task, onPause, onResume, onRetry, onRemove, onOpenFol
                 </div>
 
                 <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-4 group-hover:translate-x-0 shrink-0">
-                    {task.status === 'error' && (
+                    {(task.status === 'error' || task.status === 'removed') && (
                         <button
                             onClick={() => onRetry(task.gid)}
-                            className="p-3 bg-red-500/10 hover:bg-red-500/20 rounded-2xl text-red-500 transition-all border border-red-500/20"
-                            title="重试"
+                            className={cn(
+                                "p-3 rounded-2xl transition-all border",
+                                task.status === 'error'
+                                    ? "bg-red-500/10 hover:bg-red-500/20 text-red-500 border-red-500/20"
+                                    : "bg-blue-500/10 hover:bg-blue-500/20 text-blue-500 border-blue-500/20"
+                            )}
+                            title="重新下载"
                         >
                             <RotateCcw className="w-5 h-5" />
                         </button>

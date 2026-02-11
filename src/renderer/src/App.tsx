@@ -72,16 +72,16 @@ export default function App() {
       case 'completed':
         return tasks.filter((t) => t.status === 'complete')
       case 'trash':
-        return tasks.filter((t) => t.status === 'removed')
+        return tasks.filter((t) => t.status === 'removed' || t.status === 'error')
       default:
         return []
     }
   }
 
   const taskCounts = {
-    downloading: tasks.filter(t => t.status === 'active' || t.status === 'waiting' || t.status === 'paused' || t.status === 'error').length,
+    downloading: tasks.filter(t => t.status === 'active' || t.status === 'waiting' || t.status === 'paused').length,
     completed: tasks.filter(t => t.status === 'complete').length,
-    trash: tasks.filter(t => t.status === 'removed').length
+    trash: tasks.filter(t => t.status === 'removed' || t.status === 'error').length
   }
 
   // --- Effects ---
@@ -196,7 +196,10 @@ export default function App() {
                     task={task}
                     onPause={(gid) => window.api.aria2.pause(gid)}
                     onResume={(gid) => window.api.aria2.unpause(gid)}
-                    onRetry={(gid) => window.api.aria2.retry(gid)}
+                    onRetry={async (gid) => {
+                      await window.api.aria2.retry(gid)
+                      fetchTasks()
+                    }}
                     onRemove={async (gid) => {
                       if (activeTab === 'trash' || activeTab === 'completed') {
                         await window.api.aria2.removePermanently(gid)
