@@ -1,5 +1,6 @@
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { FolderOpen, AlertCircle } from 'lucide-react'
+import { FolderOpen, AlertCircle, Cpu } from 'lucide-react'
 import { cn } from '../utils/cn'
 
 interface SettingsPanelProps {
@@ -9,6 +10,12 @@ interface SettingsPanelProps {
 }
 
 export function SettingsPanel({ downloadPath, onSelectPath, isEngineConnected }: SettingsPanelProps) {
+    const [enginePath, setEnginePath] = useState<string>('正在获取...')
+
+    useEffect(() => {
+        window.api.aria2.getEnginePath().then(setEnginePath)
+    }, [])
+
     return (
         <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -44,19 +51,30 @@ export function SettingsPanel({ downloadPath, onSelectPath, isEngineConnected }:
                     </div>
                 </div>
 
-                <div className="bg-[#141416] border border-white/[0.03] rounded-3xl p-8 flex items-center justify-between">
-                    <div className="space-y-1">
-                        <p className="text-sm font-black text-slate-500 uppercase tracking-widest">Aria2 核心引擎</p>
-                        <div className="flex items-center gap-2">
-                            <span className={cn("w-2 h-2 rounded-full", isEngineConnected ? "bg-green-500" : "bg-red-500")} />
-                            <p className="text-lg font-bold text-slate-200">
-                                {isEngineConnected ? '运行中 (Local:6800)' : '已断开连接'}
-                            </p>
+                <div className="bg-[#141416] border border-white/[0.03] rounded-3xl p-8 space-y-4">
+                    <div className="flex items-center justify-between">
+                        <div className="space-y-1">
+                            <p className="text-sm font-black text-slate-500 uppercase tracking-widest">Aria2 核心引擎</p>
+                            <div className="flex items-center gap-2">
+                                <span className={cn("w-2 h-2 rounded-full", isEngineConnected ? "bg-green-500" : "bg-red-500")} />
+                                <p className="text-lg font-bold text-slate-200">
+                                    {isEngineConnected ? '运行中 (Local:6800)' : '已断开连接'}
+                                </p>
+                            </div>
                         </div>
+                        <button className="px-6 py-3 bg-white/5 hover:bg-white/10 rounded-xl text-slate-400 font-bold transition-all border border-white/5">
+                            检查更新
+                        </button>
                     </div>
-                    <button className="px-6 py-3 bg-white/5 hover:bg-white/10 rounded-xl text-slate-400 font-bold transition-all border border-white/5">
-                        检查更新
-                    </button>
+                    <div className="p-4 bg-white/[0.02] border border-white/5 rounded-2xl space-y-2">
+                        <div className="flex items-center gap-2 text-slate-500 group">
+                            <Cpu className="w-4 h-4" />
+                            <span className="text-[10px] font-black uppercase tracking-widest">引擎二进制路径</span>
+                        </div>
+                        <p className="text-xs font-mono text-slate-400 break-all bg-black/20 p-2 rounded-lg border border-white/5 leading-relaxed">
+                            {enginePath}
+                        </p>
+                    </div>
                 </div>
             </div>
         </motion.div>

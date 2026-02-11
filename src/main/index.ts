@@ -4,6 +4,7 @@ import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import { aria2Manager } from './aria2-manager'
 import { Aria2RPC } from './aria2-rpc'
 import { ClipboardMonitor } from './clipboard-monitor'
+import { historyManager } from './history-manager'
 import icon from '../../resources/icon.png?asset'
 
 let mainWindow: BrowserWindow | null = null
@@ -106,7 +107,33 @@ app.whenReady().then(() => {
     const active = await Aria2RPC.tellActive()
     const waiting = await Aria2RPC.tellWaiting(0, 100)
     const stopped = await Aria2RPC.tellStopped(0, 100)
-    return { active, waiting, stopped }
+    
+    // Sync stopped tasks to persistent history
+    historyManager.update(stopped)
+    
+    // Merge persistent history for stopped/complete/removed tasks
+    const history = historyManager.getHistory()
+    
+    // Deduplicate by GID, prioritizing live data from aria2 if available
+    const stoppedMap = new Map()
+    history.forEach(t => stoppedMap.set(t.gid, t))
+    stopped.forEach(t => stoppedMap.set(t.gid, t))
+    
+    return { 
+        active, 
+        waiting, 
+        stopped: Array.from(stoppedMap.values()).sort((a: any, b: any) => b.gid.localeCompare(a.gid)) 
+    }
+  })
+
+  ipcMain.handle('aria2:removePermanently', async (_, gid: string) => {
+    try {
+        await Aria2RPC.remove(gid).catch(() => {}) // Try to remove from aria2 memory if still there
+        historyManager.remove(gid) // Remove from persistent disk
+        return true
+    } catch (e) {
+        return false
+    }
   })
 
   ipcMain.handle('aria2:pause', async (_, gid: string) => {
@@ -115,6 +142,12 @@ app.whenReady().then(() => {
 
   ipcMain.handle('aria2:unpause', async (_, gid: string) => {
     return await Aria2RPC.unpause(gid)
+  })
+
+  ipcMain.handle('aria2:retry', async (_, gid: string) => {
+    const result = await Aria2RPC.retry(gid)
+    historyManager.remove(gid) // Clear the old failed record from persistent storage
+    return result
   })
 
   ipcMain.handle('aria2:remove', async (_, gid: string) => {
@@ -127,6 +160,14 @@ app.whenReady().then(() => {
 
   ipcMain.handle('aria2:changeGlobalOption', async (_, options: any) => {
     return await Aria2RPC.changeGlobalOption(options)
+  })
+
+  ipcMain.handle('aria2:getEnginePath', async () => {
+    return aria2Manager.getPath()
+  })
+
+  ipcMain.handle('app:getVersion', () => {
+    return app.getVersion()
   })
 
   ipcMain.handle('dialog:openDirectory', async () => {

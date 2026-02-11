@@ -22,11 +22,17 @@ export class Aria2Manager {
         this.sessionPath = path.join(userData, 'aria2.session')
 
         this.initSession()
+        console.log(`[Aria2] Session path: ${this.sessionPath}`)
     }
 
     private initSession() {
-        if (!fs.existsSync(this.sessionPath)) {
-            fs.writeFileSync(this.sessionPath, '')
+        try {
+            if (!fs.existsSync(this.sessionPath)) {
+                fs.writeFileSync(this.sessionPath, '', { flag: 'a' })
+                console.log('[Aria2] Created new session file')
+            }
+        } catch (e) {
+            console.error('[Aria2] Failed to init session:', e)
         }
     }
 
@@ -34,7 +40,7 @@ export class Aria2Manager {
         if (this.aria2Process) return
 
         if (!fs.existsSync(this.aria2Path)) {
-            console.error(`Aria2 binary not found at: ${this.aria2Path}. Please ensure aria2c.exe is in resources/bin/`)
+            console.error(`[Aria2] Binary not found at: ${this.aria2Path}. Please ensure aria2c.exe is in resources/bin/`)
             return
         }
 
@@ -45,7 +51,7 @@ export class Aria2Manager {
             '--rpc-max-request-size=2M',
             `--input-file=${this.sessionPath}`,
             `--save-session=${this.sessionPath}`,
-            '--save-session-interval=30',
+            '--save-session-interval=1', // Save every 1 second for maximum persistence
             '--continue=true',
             '--max-concurrent-downloads=5',
             '--max-connection-per-server=16',
@@ -62,23 +68,30 @@ export class Aria2Manager {
             '--follow-torrent=mem',
             '--listen-port=6881-6999',
             '--dht-listen-port=6881-6999',
+            '--quiet=true', // Minimize noise, use our own logging
         ]
 
         this.aria2Process = spawn(this.aria2Path, args, {
-            stdio: 'ignore', // Keep it clean
+            stdio: 'pipe', // Change to pipe to capture initial errors if any
             windowsHide: true,
         })
 
+        if (this.aria2Process.stderr) {
+            this.aria2Process.stderr.on('data', (data) => {
+                console.error(`[Aria2 Error] ${data}`)
+            })
+        }
+
         this.aria2Process.on('error', (err) => {
-            console.error('Failed to start aria2:', err)
+            console.error('[Aria2] Failed to start:', err)
         })
 
         this.aria2Process.on('exit', (code) => {
-            console.log(`aria2 exited with code ${code}`)
+            console.log(`[Aria2] Process exited with code ${code}`)
             this.aria2Process = null
         })
 
-        console.log('Aria2 engine started on port 6800')
+        console.log('[Aria2] Engine started on port 6800')
     }
 
     public stop() {
@@ -86,6 +99,10 @@ export class Aria2Manager {
             this.aria2Process.kill()
             this.aria2Process = null
         }
+    }
+
+    public getPath() {
+        return this.aria2Path
     }
 }
 

@@ -8,6 +8,7 @@ interface TaskCardProps {
     task: Aria2Task
     onPause: (gid: string) => void
     onResume: (gid: string) => void
+    onRetry: (gid: string) => void
     onRemove: (gid: string) => void
     onOpenFolder: (path: string) => void
 }
@@ -20,7 +21,7 @@ const getFileIcon = (filename: string) => {
     return <FileText className="w-5 h-5 text-blue-400" />
 }
 
-export function TaskCard({ task, onPause, onResume, onRemove, onOpenFolder }: TaskCardProps) {
+export function TaskCard({ task, onPause, onResume, onRetry, onRemove, onOpenFolder }: TaskCardProps) {
     const name = task.bittorrent?.info?.name || task.files[0]?.path?.split(/[/\\]/).pop() || task.files[0]?.uris[0]?.uri?.split('/').pop() || 'Nexus Metadata...'
     const progress = task.totalLength === '0' ? 0 : Math.round((parseInt(task.completedLength) / parseInt(task.totalLength)) * 100)
     const isBT = !!task.bittorrent
@@ -132,7 +133,7 @@ export function TaskCard({ task, onPause, onResume, onRemove, onOpenFolder }: Ta
                 <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-4 group-hover:translate-x-0 shrink-0">
                     {task.status === 'error' && (
                         <button
-                            onClick={() => onResume(task.gid)}
+                            onClick={() => onRetry(task.gid)}
                             className="p-3 bg-red-500/10 hover:bg-red-500/20 rounded-2xl text-red-500 transition-all border border-red-500/20"
                             title="重试"
                         >

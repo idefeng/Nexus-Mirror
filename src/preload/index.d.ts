@@ -12,9 +12,12 @@ declare global {
         getTasks: () => Promise<{ active: any[], waiting: any[], stopped: any[] }>
         pause: (gid: string) => Promise<string>
         unpause: (gid: string) => Promise<string>
+        retry: (gid: string) => Promise<string>
         remove: (gid: string) => Promise<string>
+        removePermanently: (gid: string) => Promise<boolean>
         getStats: () => Promise<any>
         changeGlobalOption: (options: any) => Promise<any>
+        getEnginePath: () => Promise<string>
       }
       dialog: {
         openDirectory: () => Promise<string | null>
@@ -28,6 +31,9 @@ declare global {
       }
       notifications: {
         complete: (title: string, body: string, path: string) => Promise<boolean>
+      }
+      app: {
+        getVersion: () => Promise<string>
       }
     }
   }

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { AnimatePresence } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 import { Settings, Plus } from 'lucide-react'
 import { useAria2 } from './hooks/useAria2'
 import { Sidebar } from './components/Sidebar'
@@ -68,20 +68,20 @@ export default function App() {
   const getFilteredTasks = () => {
     switch (activeTab) {
       case 'downloading':
-        return tasks.filter((t) => t.status === 'active' || t.status === 'waiting' || t.status === 'paused')
+        return tasks.filter((t) => t.status === 'active' || t.status === 'waiting' || t.status === 'paused' || t.status === 'error')
       case 'completed':
         return tasks.filter((t) => t.status === 'complete')
       case 'trash':
-        return tasks.filter((t) => t.status === 'removed' || t.status === 'error')
+        return tasks.filter((t) => t.status === 'removed')
       default:
         return []
     }
   }
 
   const taskCounts = {
-    downloading: tasks.filter(t => t.status === 'active' || t.status === 'waiting' || t.status === 'paused').length,
+    downloading: tasks.filter(t => t.status === 'active' || t.status === 'waiting' || t.status === 'paused' || t.status === 'error').length,
     completed: tasks.filter(t => t.status === 'complete').length,
-    trash: tasks.filter(t => t.status === 'removed' || t.status === 'error').length
+    trash: tasks.filter(t => t.status === 'removed').length
   }
 
   // --- Effects ---
@@ -171,7 +171,7 @@ export default function App() {
             >
               <Settings className="w-6 h-6" />
             </button>
-            <div className="text-right">
+            <div className="w-[160px] text-right shrink-0">
               <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest leading-none mb-1">Total Speed</p>
               <p className="text-2xl font-black text-blue-400 tabular-nums leading-none">
                 {formatSpeed(globalStats.downloadSpeed)}
@@ -188,21 +188,29 @@ export default function App() {
               onSelectPath={handleSelectPath}
             />
           ) : (
-            <div className="space-y-4">
-              <AnimatePresence mode="popLayout" initial={false}>
+            <motion.div layout className="flex flex-col gap-4">
+              <AnimatePresence initial={false}>
                 {getFilteredTasks().map((task) => (
                   <TaskCard
                     key={task.gid}
                     task={task}
                     onPause={(gid) => window.api.aria2.pause(gid)}
                     onResume={(gid) => window.api.aria2.unpause(gid)}
-                    onRemove={(gid) => window.api.aria2.remove(gid)}
+                    onRetry={(gid) => window.api.aria2.retry(gid)}
+                    onRemove={async (gid) => {
+                      if (activeTab === 'trash' || activeTab === 'completed') {
+                        await window.api.aria2.removePermanently(gid)
+                      } else {
+                        await window.api.aria2.remove(gid)
+                      }
+                      fetchTasks()
+                    }}
                     onOpenFolder={(path) => window.api.shell.showInFolder(path)}
                   />
                 ))}
               </AnimatePresence>
               {getFilteredTasks().length === 0 && <EmptyState />}
-            </div>
+            </motion.div>
           )}
         </section>
 
@@ -240,6 +248,6 @@ export default function App() {
         .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.05); border-radius: 20px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.1); }
       `}</style>
-    </div>
+    </div >
   )
 }

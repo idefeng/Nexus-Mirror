@@ -11,9 +11,12 @@ const api = {
     getTasks: () => ipcRenderer.invoke('aria2:getTasks'),
     pause: (gid: string) => ipcRenderer.invoke('aria2:pause', gid),
     unpause: (gid: string) => ipcRenderer.invoke('aria2:unpause', gid),
+    retry: (gid: string) => ipcRenderer.invoke('aria2:retry', gid),
     remove: (gid: string) => ipcRenderer.invoke('aria2:remove', gid),
+    removePermanently: (gid: string) => ipcRenderer.invoke('aria2:removePermanently', gid),
     getStats: () => ipcRenderer.invoke('aria2:getStats'),
     changeGlobalOption: (options: any) => ipcRenderer.invoke('aria2:changeGlobalOption', options),
+    getEnginePath: () => ipcRenderer.invoke('aria2:getEnginePath'),
   },
   dialog: {
     openDirectory: () => ipcRenderer.invoke('dialog:openDirectory'),
@@ -29,6 +32,9 @@ const api = {
   },
   notifications: {
     complete: (title: string, body: string, path: string) => ipcRenderer.invoke('notification:complete', title, body, path),
+  },
+  app: {
+    getVersion: () => ipcRenderer.invoke('app:getVersion'),
   }
 }
 

@@ -77,6 +77,29 @@ export class Aria2RPC {
         return this.call('remove', [gid])
     }
 
+    static async retry(gid: string) {
+        // 1. Get current task details
+        const task = await this.tellStatus(gid)
+        
+        // 2. Prepare URIs and Options
+        const uris = task.files && task.files[0] ? task.files[0].uris.map(u => u.uri) : []
+        
+        if (uris.length === 0) {
+            throw new Error('No URIs found for retrying task')
+        }
+
+        // Get options (like dir)
+        const options = await this.call('getOption', [gid])
+        
+        // 3. Add task again
+        const newGid = await this.addUri(uris, options)
+        
+        // 4. Remove the old failed/removed task
+        await this.call('removeStopped', [gid]).catch(() => {})
+        
+        return newGid
+    }
+
     static async forceRemove(gid: string) {
         return this.call('forceRemove', [gid])
     }

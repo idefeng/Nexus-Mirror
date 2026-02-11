@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import { DownloadCloud, CheckCircle, Trash2, Settings } from 'lucide-react'
 import { cn } from '../utils/cn'
 import logo from '../assets/icon.png'
@@ -13,6 +14,12 @@ interface SidebarProps {
 }
 
 export function Sidebar({ activeTab, setActiveTab, taskCounts }: SidebarProps) {
+    const [version, setVersion] = useState<string>('0.0.0')
+
+    useEffect(() => {
+        window.api.app.getVersion().then(setVersion)
+    }, [])
+
     const sidebarItems = [
         { id: 'downloading', icon: DownloadCloud, label: '正在下载', count: taskCounts.downloading, color: 'text-blue-400' },
         { id: 'completed', icon: CheckCircle, label: '已完成', count: taskCounts.completed, color: 'text-green-400' },
@@ -72,6 +79,18 @@ export function Sidebar({ activeTab, setActiveTab, taskCounts }: SidebarProps) {
                 ))}
             </nav>
 
+            <div className="p-8 mt-auto border-t border-white/5">
+                <div className="flex items-center justify-between opacity-40 hover:opacity-100 transition-opacity duration-300">
+                    <div>
+                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-tight">Version</p>
+                        <p className="text-xs font-bold text-slate-300 tabular-nums">{version}</p>
+                    </div>
+                    <div className="text-right">
+                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-tight">Stable</p>
+                        <p className="text-[10px] font-bold text-green-500 uppercase">Released</p>
+                    </div>
+                </div>
+            </div>
         </aside>
     )
 }
