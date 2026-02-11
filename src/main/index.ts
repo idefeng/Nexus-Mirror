@@ -1,6 +1,8 @@
 import { app, shell, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
+import { aria2Manager } from './aria2-manager'
+import { Aria2RPC } from './aria2-rpc'
 import icon from '../../resources/icon.png?asset'
 
 function createWindow(): void {
@@ -49,8 +51,36 @@ app.whenReady().then(() => {
     optimizer.watchWindowShortcuts(window)
   })
 
-  // IPC test
-  ipcMain.on('ping', () => console.log('pong'))
+  // Aria2 IPC Handlers
+  ipcMain.handle('aria2:addUri', async (_, uris: string[]) => {
+    return await Aria2RPC.addUri(uris)
+  })
+
+  ipcMain.handle('aria2:getTasks', async () => {
+    const active = await Aria2RPC.tellActive()
+    const waiting = await Aria2RPC.tellWaiting(0, 100)
+    const stopped = await Aria2RPC.tellStopped(0, 100)
+    return { active, waiting, stopped }
+  })
+
+  ipcMain.handle('aria2:pause', async (_, gid: string) => {
+    return await Aria2RPC.pause(gid)
+  })
+
+  ipcMain.handle('aria2:unpause', async (_, gid: string) => {
+    return await Aria2RPC.unpause(gid)
+  })
+
+  ipcMain.handle('aria2:remove', async (_, gid: string) => {
+    return await Aria2RPC.remove(gid)
+  })
+
+  ipcMain.handle('aria2:getStats', async () => {
+    return await Aria2RPC.getGlobalStat()
+  })
+
+  // Start aria2 engine
+  aria2Manager.start()
 
   createWindow()
 
@@ -65,6 +95,7 @@ app.whenReady().then(() => {
 // for applications and their menu bar to stay active until the user quits
 // explicitly with Cmd + Q.
 app.on('window-all-closed', () => {
+  aria2Manager.stop()
   if (process.platform !== 'darwin') {
     app.quit()
   }
