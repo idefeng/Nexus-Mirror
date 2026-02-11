@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { Settings, Plus } from 'lucide-react'
+import { Settings, Plus, X, Minus, Square } from 'lucide-react'
 import { useAria2 } from './hooks/useAria2'
 import { Sidebar } from './components/Sidebar'
 import { TaskCard } from './components/TaskCard'
@@ -137,9 +137,31 @@ export default function App() {
         taskCounts={taskCounts}
       />
 
-      <main className="flex-1 flex flex-col min-w-0 bg-[#0c0c0e] relative">
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-600/5 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/2" />
-        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-indigo-600/5 blur-[120px] rounded-full translate-y-1/2 -translate-x-1/2" />
+      <main className="flex-1 flex flex-col min-w-0 bg-[#0c0c0e] relative drag">
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-600/5 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-indigo-600/5 blur-[120px] rounded-full translate-y-1/2 -translate-x-1/2 pointer-events-none" />
+
+        {/* Window Controls */}
+        <div className="absolute top-4 right-4 flex items-center gap-1 z-[100] no-drag">
+          <button
+            onClick={() => window.api.app.minimize()}
+            className="p-2 hover:bg-white/5 rounded-lg text-slate-500 hover:text-white transition-all focus:outline-none"
+          >
+            <Minus className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => window.api.app.maximize()}
+            className="p-2 hover:bg-white/5 rounded-lg text-slate-500 hover:text-white transition-all focus:outline-none"
+          >
+            <Square className="w-3.5 h-3.5" />
+          </button>
+          <button
+            onClick={() => window.api.app.close()}
+            className="p-2 hover:bg-red-500/20 rounded-lg text-slate-500 hover:text-red-500 transition-all focus:outline-none"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
 
         <header className="p-12 pb-0 flex flex-wrap items-center justify-between gap-8 relative z-10">
           <div className="min-w-[400px] flex-1">
@@ -152,7 +174,7 @@ export default function App() {
               <div className="h-px bg-white/5 flex-1 mx-4 hidden md:block" />
               <button
                 onClick={() => setIsAddTaskModalOpen(true)}
-                className="px-8 py-4 bg-blue-600 hover:bg-blue-500 rounded-[24px] font-black text-white shadow-xl shadow-blue-600/30 transition-all hover:scale-105 active:scale-95 flex items-center gap-3 shrink-0"
+                className="px-8 py-4 bg-blue-600 hover:bg-blue-500 rounded-[24px] font-black text-white shadow-xl shadow-blue-600/30 transition-all hover:scale-105 active:scale-95 flex items-center gap-3 shrink-0 no-drag"
               >
                 <Plus className="w-6 h-6" />
                 <span className="hidden sm:inline">添加下载</span>
@@ -165,11 +187,11 @@ export default function App() {
             <button
               onClick={() => setActiveTab('settings')}
               className={cn(
-                "p-4 rounded-2xl transition-all duration-300",
+                "p-4 rounded-2xl transition-all duration-300 no-drag group",
                 activeTab === 'settings' ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30" : "bg-white/5 text-slate-400 hover:bg-white/10 hover:text-white"
               )}
             >
-              <Settings className="w-6 h-6" />
+              <Settings className="w-6 h-6 rotate-0 group-hover:rotate-45 transition-transform duration-500" />
             </button>
             <div className="w-[160px] text-right shrink-0">
               <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest leading-none mb-1">Total Speed</p>

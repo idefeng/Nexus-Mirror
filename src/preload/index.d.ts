@@ -34,6 +34,9 @@ declare global {
       }
       app: {
         getVersion: () => Promise<string>
+        minimize: () => void
+        maximize: () => void
+        close: () => void
       }
     }
   }

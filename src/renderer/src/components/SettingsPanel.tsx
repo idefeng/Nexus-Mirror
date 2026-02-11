@@ -77,6 +77,37 @@ export function SettingsPanel({ downloadPath, onSelectPath, isEngineConnected }:
                     </div>
                 </div>
             </div>
+
+            <div className="space-y-6 pt-8 border-t border-white/5">
+                <div className="space-y-4">
+                    <h2 className="text-2xl font-black text-white tracking-tight flex items-center gap-3">
+                        关于 Nexus Mirror
+                    </h2>
+                    <div className="bg-[#141416] border border-white/[0.03] rounded-3xl p-8 space-y-6">
+                        <p className="text-sm text-slate-400 font-medium leading-relaxed">
+                            Nexus Mirror 是一款基于 Aria2 的高性能、全能型下载客户端，致力于通过现代化的 UI 设计为您提供极致美观与流畅的下载体验。
+                        </p>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                            <div className="space-y-2">
+                                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">开源地址</p>
+                                <a
+                                    href="https://github.com/idefeng/Nexus-Mirror"
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="text-sm font-bold text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-2"
+                                >
+                                    github.com/idefeng/Nexus-Mirror
+                                </a>
+                            </div>
+                            <div className="space-y-2">
+                                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">开发者</p>
+                                <p className="text-sm font-bold text-slate-200">idefeng <span className="text-slate-500 font-medium ml-2">(changdefeng06@gmail.com)</span></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </motion.div>
     )
 }

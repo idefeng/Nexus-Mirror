@@ -28,7 +28,7 @@ export function Sidebar({ activeTab, setActiveTab, taskCounts }: SidebarProps) {
     ]
 
     return (
-        <aside className="w-72 border-r border-white/5 bg-[#0a0a0b]/50 backdrop-blur-xl flex flex-col">
+        <aside className="w-72 border-r border-white/5 bg-[#0a0a0b]/50 backdrop-blur-xl flex flex-col no-drag">
             <div className="p-8">
                 <div className="flex items-center gap-3 px-2">
                     <div className="w-10 h-10 bg-white/5 rounded-2xl flex items-center justify-center shadow-lg shadow-white/5 border border-white/5 overflow-hidden">

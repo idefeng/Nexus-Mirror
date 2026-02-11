@@ -20,6 +20,8 @@ function createWindow(): void {
     minHeight: 600,
     show: false,
     autoHideMenuBar: true,
+    frame: false,
+    backgroundColor: '#00000000',
     icon,
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
@@ -197,6 +199,22 @@ app.whenReady().then(() => {
 
   ipcMain.handle('aria2:getEnginePath', async () => {
     return aria2Manager.getPath()
+  })
+
+  ipcMain.on('window:minimize', () => {
+    mainWindow?.minimize()
+  })
+
+  ipcMain.on('window:maximize', () => {
+    if (mainWindow?.isMaximized()) {
+      mainWindow?.unmaximize()
+    } else {
+      mainWindow?.maximize()
+    }
+  })
+
+  ipcMain.on('window:close', () => {
+    mainWindow?.hide() // Standard for apps with tray
   })
 
   ipcMain.handle('app:getVersion', () => {
