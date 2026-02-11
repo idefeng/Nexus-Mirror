@@ -54,6 +54,7 @@ pnpm build:mac
 # 构建 Linux 版本
 pnpm build:linux
 ```
+<img width="1080" height="720" alt="image" src="https://github.com/user-attachments/assets/f6e396eb-cdfa-40ad-b500-5b4cedc5dcf5" />
 
 ---
 
