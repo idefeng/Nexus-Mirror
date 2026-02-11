@@ -44,6 +44,14 @@ export class Aria2RPC {
         return this.call('addUri', [uris, options])
     }
 
+    static async addTorrent(torrent: string, uris: string[] = [], options: any = {}) {
+        return this.call('addTorrent', [torrent, uris, options])
+    }
+
+    static async tellStatus(gid: string, keys: string[] = []): Promise<Aria2Task> {
+        return this.call('tellStatus', [gid, keys])
+    }
+
     static async tellActive(): Promise<Aria2Task[]> {
         return this.call('tellActive')
     }
@@ -70,6 +78,10 @@ export class Aria2RPC {
 
     static async forceRemove(gid: string) {
         return this.call('forceRemove', [gid])
+    }
+
+    static async changeOption(gid: string, options: any) {
+        return this.call('changeOption', [gid, options])
     }
 
     static async getGlobalStat() {

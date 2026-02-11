@@ -52,6 +52,16 @@ export class Aria2Manager {
             '--split=16',
             '--min-split-size=1M',
             '--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+            // BitTorrent Settings
+            '--enable-dht=true',
+            '--enable-dht6=false',
+            '--enable-peer-exchange=true',
+            '--bt-enable-lpd=true',
+            '--bt-max-peers=55',
+            '--bt-request-peer-speed-limit=50K',
+            '--follow-torrent=mem',
+            '--listen-port=6881-6999',
+            '--dht-listen-port=6881-6999',
         ]
 
         this.aria2Process = spawn(this.aria2Path, args, {

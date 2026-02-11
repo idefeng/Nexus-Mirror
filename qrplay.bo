@@ -1,0 +1,78 @@
+
+
+
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+<title>1-03-1消防知识1</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+<style type="text/css">
+*{margin:0; padding:0;}
+html,body{width:100%;height:100%;}
+.div{position:relative; width:100%; height:100%; background:#000;}
+@media screen and ( max-width: 680px ){
+  html,body{height:initial;}
+}
+/* 播放按钮 */
+#play{width:80px; height:80px; background:#333; border-radius:40px; box-shadow:0 0 8px 3px #FFF; position:absolute; top:50%; left:50%; margin:-40px 0 0 -40px; z-index:99999; -webkit-tap-highlight-color:transparent; opacity:0.8;}
+#play:after{display:block; content:''; width:0; height:0; overflow:hidden; position:absolute; top:20px; left:25px; border-left:38px solid #FFF; border-top:20px solid rgba(0,0,0,0); border-bottom:20px solid rgba(0,0,0,0); cursor:pointer;}
+</style>
+</head>
+<body>
+<div class="div" id="odiv">
+<script src="https://p.bokecc.com/player?vid=47A194D1EF6B05F29C33DC5901307461&siteid=91C21EF3AD3F9C3A&autoStart=false&width=100%&height=100%&playerid=&playertype=&mediatype=1&customerId=&consolePlay=true" type="text/javascript"></script>
+<a href="javascript:;" id="play"></a>
+</div>
+
+
+<script>
+//=====VR播放调整对全屏的调整======//
+function on_cc_h5player_init(){
+    setTimeout(function(){
+        var oCanvas = document.getElementsByTagName('canvas')[0];
+        var wid = document.body.offsetWidth;
+        if (!!oCanvas && wid < 680) {
+            document.getElementsByTagName('html')[0].style.height = '100%';
+            document.getElementsByTagName('body')[0].style.height = '100%';
+        }
+    },1000);
+}
+//==========================//
+var a = document.getElementById("play");
+if(navigator.userAgent.indexOf('Android')!= -1){
+	a.style.display = "none";
+	setTimeout(function(){
+		var v = document.getElementsByTagName("video")[0];
+		v.addEventListener('playing', function(){
+			a.style.display = "none";
+			if(navigator.userAgent.indexOf('Android 2')!= -1){
+				a.style.display = "block";
+			};
+		}, false);
+	}, 1000);
+} else{
+	a.style.display = "none";
+};
+function odivResize(){
+	var odivHeight = document.getElementById("odiv").offsetHeight;
+	if (odivHeight == 0){
+		document.getElementById("odiv").style.height = window.screen.height * 0.3 +'px';
+	}
+}
+odivResize();
+window.onresize = function(){
+	odivResize();
+}
+
+</script>
+
+
+</body>
+
+</html>

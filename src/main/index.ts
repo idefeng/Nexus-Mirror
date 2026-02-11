@@ -1,13 +1,18 @@
-import { app, shell, BrowserWindow, ipcMain } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, Notification, Tray, Menu, nativeImage } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import { aria2Manager } from './aria2-manager'
 import { Aria2RPC } from './aria2-rpc'
+import { ClipboardMonitor } from './clipboard-monitor'
 import icon from '../../resources/icon.png?asset'
+
+let mainWindow: BrowserWindow | null = null
+let tray: Tray | null = null
+let isQuiting = false
 
 function createWindow(): void {
   // Create the browser window.
-  const mainWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 900,
     height: 670,
     show: false,
@@ -20,21 +25,48 @@ function createWindow(): void {
   })
 
   mainWindow.on('ready-to-show', () => {
-    mainWindow.show()
+    mainWindow?.show()
   })
+
+  // Start clipboard monitor
+  const clipboardMonitor = new ClipboardMonitor(mainWindow)
+  clipboardMonitor.start()
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
     shell.openExternal(details.url)
     return { action: 'deny' }
   })
 
-  // HMR for renderer base on electron-vite cli.
-  // Load the remote URL for development or the local html file for production.
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
     mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
   } else {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
+
+  // Tray Implementation
+  const trayIcon = nativeImage.createFromPath(icon)
+  tray = new Tray(trayIcon)
+  const contextMenu = Menu.buildFromTemplate([
+    { label: '打开 Nexus Mirror', click: () => mainWindow?.show() },
+    { type: 'separator' },
+    { label: '退出', click: () => {
+      isQuiting = true
+      app.quit()
+    }}
+  ])
+  tray.setToolTip('Nexus Mirror')
+  tray.setContextMenu(contextMenu)
+  tray.on('click', () => {
+    mainWindow?.isVisible() ? mainWindow?.hide() : mainWindow?.show()
+  })
+
+  mainWindow.on('close', (event) => {
+    if (!isQuiting) {
+      event.preventDefault()
+      mainWindow?.hide()
+    }
+    return false
+  })
 }
 
 // This method will be called when Electron has finished
@@ -52,8 +84,20 @@ app.whenReady().then(() => {
   })
 
   // Aria2 IPC Handlers
-  ipcMain.handle('aria2:addUri', async (_, uris: string[]) => {
-    return await Aria2RPC.addUri(uris)
+  ipcMain.handle('aria2:addUri', async (_, uris: string[], options: any = {}) => {
+    return await Aria2RPC.addUri(uris, options)
+  })
+
+  ipcMain.handle('aria2:addTorrent', async (_, torrent: string, uris: string[] = [], options: any = {}) => {
+    return await Aria2RPC.addTorrent(torrent, uris, options)
+  })
+
+  ipcMain.handle('aria2:tellStatus', async (_, gid: string, keys: string[] = []) => {
+    return await Aria2RPC.tellStatus(gid, keys)
+  })
+
+  ipcMain.handle('aria2:changeOption', async (_, gid: string, options: any) => {
+    return await Aria2RPC.changeOption(gid, options)
   })
 
   ipcMain.handle('aria2:getTasks', async () => {
@@ -77,6 +121,24 @@ app.whenReady().then(() => {
 
   ipcMain.handle('aria2:getStats', async () => {
     return await Aria2RPC.getGlobalStat()
+  })
+
+  ipcMain.handle('shell:openPath', async (_, path: string) => {
+    return await shell.openPath(path)
+  })
+
+  ipcMain.handle('shell:showInFolder', async (_, path: string) => {
+    shell.showItemInFolder(path)
+    return true
+  })
+
+  ipcMain.handle('notification:complete', async (_, title: string, body: string, path: string) => {
+    const n = new Notification({ title, body })
+    n.on('click', () => {
+      shell.showItemInFolder(path)
+    })
+    n.show()
+    return true
   })
 
   // Start aria2 engine
