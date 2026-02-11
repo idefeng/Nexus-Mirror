@@ -1,4 +1,4 @@
-import { app, shell, BrowserWindow, ipcMain, Notification, Tray, Menu, nativeImage } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, Notification, Tray, Menu, nativeImage, dialog } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import { aria2Manager } from './aria2-manager'
@@ -121,6 +121,19 @@ app.whenReady().then(() => {
 
   ipcMain.handle('aria2:getStats', async () => {
     return await Aria2RPC.getGlobalStat()
+  })
+
+  ipcMain.handle('aria2:changeGlobalOption', async (_, options: any) => {
+    return await Aria2RPC.changeGlobalOption(options)
+  })
+
+  ipcMain.handle('dialog:openDirectory', async () => {
+    if (!mainWindow) return null
+    const result = await dialog.showOpenDialog(mainWindow, {
+      properties: ['openDirectory']
+    })
+    if (result.canceled) return null
+    return result.filePaths[0]
   })
 
   ipcMain.handle('shell:openPath', async (_, path: string) => {

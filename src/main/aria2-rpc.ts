@@ -87,4 +87,8 @@ export class Aria2RPC {
     static async getGlobalStat() {
         return this.call('getGlobalStat')
     }
+
+    static async changeGlobalOption(options: any) {
+        return this.call('changeGlobalOption', [options])
+    }
 }

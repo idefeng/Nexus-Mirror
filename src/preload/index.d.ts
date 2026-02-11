@@ -14,6 +14,10 @@ declare global {
         unpause: (gid: string) => Promise<string>
         remove: (gid: string) => Promise<string>
         getStats: () => Promise<any>
+        changeGlobalOption: (options: any) => Promise<any>
+      }
+      dialog: {
+        openDirectory: () => Promise<string | null>
       }
       shell: {
         openPath: (path: string) => Promise<any>

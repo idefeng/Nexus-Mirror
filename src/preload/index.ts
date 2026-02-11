@@ -13,6 +13,10 @@ const api = {
     unpause: (gid: string) => ipcRenderer.invoke('aria2:unpause', gid),
     remove: (gid: string) => ipcRenderer.invoke('aria2:remove', gid),
     getStats: () => ipcRenderer.invoke('aria2:getStats'),
+    changeGlobalOption: (options: any) => ipcRenderer.invoke('aria2:changeGlobalOption', options),
+  },
+  dialog: {
+    openDirectory: () => ipcRenderer.invoke('dialog:openDirectory'),
   },
   shell: {
     openPath: (path: string) => ipcRenderer.invoke('shell:openPath', path),
