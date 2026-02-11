@@ -17,6 +17,7 @@ export interface Aria2Task {
     length: string
     uris: Array<{ uri: string }>
   }>
+  followedBy?: string[]
 }
 
 export function useAria2() {
@@ -58,21 +59,43 @@ export function useAria2() {
     })
   }, [tasks])
 
-  const startPreviewPolling = (gid: string) => {
+  const startPreviewPolling = (initialGid: string) => {
     if (previewTimerRef.current) clearInterval(previewTimerRef.current)
+
+    let currentGid = initialGid
+    
+    // Auto-unpause for magnets so they can fetch metadata
+    const initMagnet = async () => {
+        try {
+            await window.api.aria2.unpause(initialGid)
+        } catch (e) { /* ignore */ }
+    }
+    initMagnet()
 
     previewTimerRef.current = setInterval(async () => {
       try {
-        const status = await window.api.aria2.tellStatus(gid)
-        if (status.files && status.files.length > 0 && status.files[0].path !== '') {
-          setPreviewTask(status)
-          setSelectedFileIndexes(status.files.map((_, i) => i + 1))
-          if (previewTimerRef.current) clearInterval(previewTimerRef.current)
+        const status = await window.api.aria2.tellStatus(currentGid)
+        
+        if (status.followedBy && status.followedBy.length > 0) {
+            currentGid = status.followedBy[0]
+            return
+        }
+
+        if (status.files && status.files.length > 0) {
+          const firstFile = status.files[0]
+          const isMetadata = firstFile.path.startsWith('[METADATA]') || firstFile.path === ''
+          
+          if (!isMetadata || (status.bittorrent?.info?.name && status.files.length > 1)) {
+             await window.api.aria2.pause(currentGid)
+             setPreviewTask(status)
+             setSelectedFileIndexes(status.files.map((_, i) => i + 1))
+             if (previewTimerRef.current) clearInterval(previewTimerRef.current)
+          }
         }
       } catch (err) {
         console.error('Preview poll error:', err)
       }
-    }, 500)
+    }, 1000)
   }
 
   const cancelPreview = async () => {

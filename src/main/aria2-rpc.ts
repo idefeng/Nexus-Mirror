@@ -20,6 +20,7 @@ export interface Aria2Task {
         completedLength: string
         uris: Array<{ uri: string }>
     }>
+    followedBy?: string[]
 }
 
 export class Aria2RPC {
