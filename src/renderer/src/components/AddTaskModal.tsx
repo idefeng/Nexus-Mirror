@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { X, FolderOpen, CheckSquare, Square, File, Download, Link2, Activity, Zap, Search } from 'lucide-react'
 import { Aria2Task } from '../hooks/useAria2'
 import { formatSize } from '../utils/format'
@@ -18,6 +18,21 @@ interface AddTaskModalProps {
     initialUrl?: string // Pre-filled URL (e.g. from clipboard)
 }
 
+const getCategoryByExtension = (url: string) => {
+    try {
+        const pathPart = url.split('?')[0].split(/[/\\]/).pop() || ''
+        const ext = pathPart.split('.').pop()?.toLowerCase()
+        if (!ext) return null
+
+        if (['mp4', 'mkv', 'avi', 'mov', 'flv', 'wmv'].includes(ext)) return '视频'
+        if (['zip', '7z', 'rar', 'tar', 'gz', 'bz2'].includes(ext)) return '压缩包'
+        if (['mp3', 'flac', 'wav', 'aac', 'm4a'].includes(ext)) return '音乐'
+        if (['exe', 'msi', 'dmg', 'pkg', 'apk'].includes(ext)) return '软件'
+        if (['txt', 'doc', 'docx', 'xls', 'xlsx', 'pdf', 'ppt', 'pptx'].includes(ext)) return '文档'
+        return null
+    } catch { return null }
+}
+
 export function AddTaskModal({
     isOpen,
     onClose,
@@ -33,10 +48,12 @@ export function AddTaskModal({
     const [url, setUrl] = useState(initialUrl)
     const [customPath, setCustomPath] = useState(downloadPath)
     const [isParsing, setIsParsing] = useState(false)
+    const [isAutoSuggested, setIsAutoSuggested] = useState(false)
 
     useEffect(() => {
         if (isOpen) {
             setCustomPath(downloadPath)
+            setIsAutoSuggested(false)
             if (!previewTask) {
                 setUrl(initialUrl)
                 setIsParsing(false)
@@ -44,9 +61,30 @@ export function AddTaskModal({
         }
     }, [isOpen, downloadPath, previewTask, initialUrl])
 
+    // Intelligent categorization effect
+    useEffect(() => {
+        if (!url || previewTask) return
+
+        const category = getCategoryByExtension(url)
+        if (category) {
+            const separator = downloadPath.includes('\\') ? '\\' : '/'
+            const newPath = downloadPath.endsWith(separator)
+                ? `${downloadPath}${category}`
+                : `${downloadPath}${separator}${category}`
+            setCustomPath(newPath)
+            setIsAutoSuggested(true)
+        } else {
+            setCustomPath(downloadPath)
+            setIsAutoSuggested(false)
+        }
+    }, [url, downloadPath, previewTask])
+
     const handleSelectPath = async () => {
         const path = await window.api.dialog.openDirectory()
-        if (path) setCustomPath(path)
+        if (path) {
+            setCustomPath(path)
+            setIsAutoSuggested(false) // User override
+        }
     }
 
     const handleStart = () => {
@@ -123,7 +161,22 @@ export function AddTaskModal({
 
                             {/* Save Path Option */}
                             <div className="space-y-3">
-                                <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest pl-1">保存到</label>
+                                <div className="flex items-center justify-between pl-1">
+                                    <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest">保存到</label>
+                                    <AnimatePresence>
+                                        {isAutoSuggested && (
+                                            <motion.span
+                                                initial={{ opacity: 0, x: 10 }}
+                                                animate={{ opacity: 1, x: 0 }}
+                                                exit={{ opacity: 0 }}
+                                                className="text-[10px] font-bold text-blue-400 flex items-center gap-1"
+                                            >
+                                                <Zap className="w-3 h-3" />
+                                                已为您自动选择分类目录
+                                            </motion.span>
+                                        )}
+                                    </AnimatePresence>
+                                </div>
                                 <div className="flex items-center gap-2">
                                     <div className="flex-1 bg-white/[0.03] border border-white/5 rounded-[24px] py-4 px-6 flex items-center gap-3 overflow-hidden group hover:border-white/10 transition-all cursor-pointer" onClick={handleSelectPath}>
                                         <FolderOpen className="w-5 h-5 text-slate-500 shrink-0" />

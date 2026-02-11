@@ -13,8 +13,10 @@ let isQuiting = false
 function createWindow(): void {
   // Create the browser window.
   mainWindow = new BrowserWindow({
-    width: 900,
-    height: 670,
+    width: 1080,
+    height: 720,
+    minWidth: 960,
+    minHeight: 600,
     show: false,
     autoHideMenuBar: true,
     icon,

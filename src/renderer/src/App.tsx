@@ -141,26 +141,27 @@ export default function App() {
         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-600/5 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/2" />
         <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-indigo-600/5 blur-[120px] rounded-full translate-y-1/2 -translate-x-1/2" />
 
-        <header className="p-12 pb-0 flex items-center justify-between gap-12 relative z-10">
-          <div className="flex-1">
+        <header className="p-12 pb-0 flex flex-wrap items-center justify-between gap-8 relative z-10">
+          <div className="min-w-[400px] flex-1">
             <div className="flex items-center gap-4">
               <h1 className="text-4xl font-black text-white tracking-tighter uppercase shrink-0">
                 {activeTab === 'downloading' ? '正在下载' :
                   activeTab === 'completed' ? '已完成' :
                     activeTab === 'trash' ? '垃圾箱' : '参数设置'}
               </h1>
-              <div className="h-px bg-white/5 flex-1 mx-4" />
+              <div className="h-px bg-white/5 flex-1 mx-4 hidden md:block" />
               <button
                 onClick={() => setIsAddTaskModalOpen(true)}
                 className="px-8 py-4 bg-blue-600 hover:bg-blue-500 rounded-[24px] font-black text-white shadow-xl shadow-blue-600/30 transition-all hover:scale-105 active:scale-95 flex items-center gap-3 shrink-0"
               >
                 <Plus className="w-6 h-6" />
-                <span>添加下载</span>
+                <span className="hidden sm:inline">添加下载</span>
+                <span className="sm:hidden">添加</span>
               </button>
             </div>
           </div>
 
-          <div className="shrink-0 flex items-center gap-6 pb-2">
+          <div className="shrink-0 flex items-center gap-6">
             <button
               onClick={() => setActiveTab('settings')}
               className={cn(
