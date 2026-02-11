@@ -34,8 +34,17 @@ export function useAria2() {
       const { active, waiting, stopped } = await window.api.aria2.getTasks()
       const stats = await window.api.aria2.getStats()
 
+      // Calculate real-time total speed from individual active tasks
+      // This provides instant feedback when a task finishes or is paused
+      const activeDownloadSpeed = active.reduce((sum, t) => sum + parseInt(t.downloadSpeed || '0'), 0)
+      const activeUploadSpeed = active.reduce((sum, t) => sum + parseInt(t.uploadSpeed || '0'), 0)
+
       setTasks([...active, ...waiting, ...stopped])
-      setGlobalStats(stats)
+      setGlobalStats({
+        ...stats,
+        downloadSpeed: activeDownloadSpeed.toString(),
+        uploadSpeed: activeUploadSpeed.toString()
+      })
       setIsEngineConnected(true)
     } catch (error) {
       console.error('Failed to fetch tasks:', error)
@@ -44,7 +53,7 @@ export function useAria2() {
   }, [])
 
   useEffect(() => {
-    const interval = setInterval(fetchTasks, 1000)
+    const interval = setInterval(fetchTasks, 500)
     return () => clearInterval(interval)
   }, [fetchTasks])
 
