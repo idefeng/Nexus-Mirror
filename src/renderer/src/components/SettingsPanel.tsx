@@ -1,16 +1,20 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { FolderOpen, AlertCircle, Cpu } from 'lucide-react'
+import { FolderOpen, AlertCircle, Cpu, Globe, ShieldCheck, Check } from 'lucide-react'
 import { cn } from '../utils/cn'
 
 interface SettingsPanelProps {
     downloadPath: string
     onSelectPath: () => void
     isEngineConnected: boolean
+    proxy: string
+    onSaveProxy: (proxy: string) => void
 }
 
-export function SettingsPanel({ downloadPath, onSelectPath, isEngineConnected }: SettingsPanelProps) {
+export function SettingsPanel({ downloadPath, onSelectPath, isEngineConnected, proxy, onSaveProxy }: SettingsPanelProps) {
     const [enginePath, setEnginePath] = useState<string>('正在获取...')
+    const [localProxy, setLocalProxy] = useState(proxy)
+    const [isSaved, setIsSaved] = useState(false)
 
     useEffect(() => {
         window.api.aria2.getEnginePath().then(setEnginePath)
@@ -23,13 +27,56 @@ export function SettingsPanel({ downloadPath, onSelectPath, isEngineConnected }:
             className="max-w-2xl space-y-8"
         >
             <div className="space-y-4">
-                <h2 className="text-3xl font-black text-white tracking-tight flex items-center gap-3">
-                    核心参数配置
-                </h2>
                 <p className="text-slate-500 font-medium">配置您的下载引擎与联机状态</p>
             </div>
 
             <div className="grid gap-6">
+                <div className="bg-[#141416] border border-white/[0.03] rounded-3xl p-8 space-y-6">
+                    <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <Globe className="w-6 h-6 text-blue-500" />
+                                <p className="text-sm font-black text-slate-500 uppercase tracking-widest">网络代理 (HTTP/SOCKS5)</p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <ShieldCheck className={cn("w-4 h-4", localProxy ? "text-green-500" : "text-slate-600")} />
+                                <span className="text-[10px] font-bold text-slate-500 uppercase">
+                                    {localProxy ? '代理已启用' : '直连模式'}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div className="flex gap-3">
+                            <input
+                                type="text"
+                                value={localProxy}
+                                onChange={(e) => {
+                                    setLocalProxy(e.target.value)
+                                    setIsSaved(false)
+                                }}
+                                placeholder="例如: http://127.0.0.1:7890"
+                                className="flex-1 bg-black/20 border border-white/5 rounded-2xl px-6 py-4 text-slate-200 font-medium focus:outline-none focus:border-blue-500/50 transition-all placeholder:text-slate-700"
+                            />
+                            <button
+                                onClick={() => {
+                                    onSaveProxy(localProxy)
+                                    setIsSaved(true)
+                                    setTimeout(() => setIsSaved(false), 2000)
+                                }}
+                                className={cn(
+                                    "px-8 rounded-2xl font-black text-sm transition-all flex items-center gap-2",
+                                    isSaved
+                                        ? "bg-green-500/10 text-green-500 border border-green-500/20"
+                                        : "bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-600/20"
+                                )}
+                            >
+                                {isSaved ? <Check className="w-4 h-4" /> : null}
+                                {isSaved ? '已保存' : '保存'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
                 <div className="bg-[#141416] border border-white/[0.03] rounded-3xl p-8 space-y-6">
                     <div className="flex items-center justify-between">
                         <div className="space-y-1">
@@ -77,6 +124,7 @@ export function SettingsPanel({ downloadPath, onSelectPath, isEngineConnected }:
                     </div>
                 </div>
             </div>
+
 
             <div className="space-y-6 pt-8 border-t border-white/5">
                 <div className="space-y-4">

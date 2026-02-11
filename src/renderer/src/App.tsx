@@ -15,6 +15,7 @@ export default function App() {
   const [isAddTaskModalOpen, setIsAddTaskModalOpen] = useState(false)
   const [detectedUrl, setDetectedUrl] = useState<string | null>(null)
   const [downloadPath, setDownloadPath] = useState(localStorage.getItem('download-path') || '')
+  const [proxy, setProxy] = useState(localStorage.getItem('aria2-proxy') || '')
 
   const {
     tasks,
@@ -64,38 +65,25 @@ export default function App() {
       console.error('Confirm download error:', err)
     }
   }
-
-  const getFilteredTasks = () => {
-    switch (activeTab) {
-      case 'downloading':
-        return tasks.filter((t) => t.status === 'active' || t.status === 'waiting' || t.status === 'paused' || t.status === 'error')
-      case 'completed':
-        return tasks.filter((t) => t.status === 'complete')
-      case 'trash':
-        return tasks.filter((t) => t.status === 'removed' || t.status === 'error')
-      default:
-        return []
-    }
-  }
-
-  const taskCounts = {
-    downloading: tasks.filter(t => t.status === 'active' || t.status === 'waiting' || t.status === 'paused').length,
-    completed: tasks.filter(t => t.status === 'complete').length,
-    trash: tasks.filter(t => t.status === 'removed' || t.status === 'error').length
-  }
-
   // --- Effects ---
   useEffect(() => {
     if (downloadPath) {
-      window.api.aria2.changeGlobalOption({ dir: downloadPath })
+      window.api.aria2.changeGlobalOption({ dir: downloadPath }).catch(console.error)
       localStorage.setItem('download-path', downloadPath)
     }
   }, [downloadPath])
 
   useEffect(() => {
+    localStorage.setItem('aria2-proxy', proxy)
+    if (isEngineConnected) {
+      window.api.aria2.changeGlobalOption({ 'all-proxy': proxy }).catch(console.error)
+    }
+  }, [proxy, isEngineConnected])
+
+  useEffect(() => {
     window.api.events.onClipboardDetected((url) => {
       setDetectedUrl(url)
-      setIsAddTaskModalOpen(true) // Automatically open modal on link detection
+      setIsAddTaskModalOpen(true)
     })
   }, [])
 
@@ -128,6 +116,25 @@ export default function App() {
       window.removeEventListener('drop', handleDrop)
     }
   }, [downloadPath])
+
+  const getFilteredTasks = () => {
+    switch (activeTab) {
+      case 'downloading':
+        return tasks.filter((t) => t.status === 'active' || t.status === 'waiting' || t.status === 'paused' || t.status === 'error')
+      case 'completed':
+        return tasks.filter((t) => t.status === 'complete')
+      case 'trash':
+        return tasks.filter((t) => t.status === 'removed' || t.status === 'error')
+      default:
+        return []
+    }
+  }
+
+  const taskCounts = {
+    downloading: tasks.filter(t => t.status === 'active' || t.status === 'waiting' || t.status === 'paused').length,
+    completed: tasks.filter(t => t.status === 'complete').length,
+    trash: tasks.filter(t => t.status === 'removed' || t.status === 'error').length
+  }
 
   return (
     <div className="flex bg-[#0a0a0b] text-slate-200 h-screen w-screen overflow-hidden font-sans selection:bg-blue-500/30">
@@ -202,12 +209,14 @@ export default function App() {
           </div>
         </header>
 
-        <section className="flex-1 overflow-y-auto px-12 pb-12 pt-8 custom-scrollbar relative z-10">
+        <section className="flex-1 overflow-y-auto px-12 pb-12 pt-8 custom-scrollbar relative z-10 no-drag">
           {activeTab === 'settings' ? (
             <SettingsPanel
               downloadPath={downloadPath}
               isEngineConnected={isEngineConnected}
+              proxy={proxy}
               onSelectPath={handleSelectPath}
+              onSaveProxy={setProxy}
             />
           ) : (
             <motion.div layout className="flex flex-col gap-4">
