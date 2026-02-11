@@ -46,9 +46,10 @@ export class Aria2Manager {
 
         const args = [
             '--enable-rpc=true',
-            '--rpc-listen-all=false',
+            '--rpc-listen-all=true',
             '--rpc-listen-port=6800',
-            '--rpc-max-request-size=2M',
+            '--rpc-allow-origin-all=true',
+            '--rpc-max-request-size=10M',
             `--input-file=${this.sessionPath}`,
             `--save-session=${this.sessionPath}`,
             '--save-session-interval=1', // Save every 1 second for maximum persistence
